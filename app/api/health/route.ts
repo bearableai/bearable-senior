@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db/client';
 import { sql } from 'drizzle-orm';
+import { loadRuntimeEnv } from '@/lib/env/runtime';
 
 export async function GET() {
   try {
+    // Load runtime environment from SSM
+    await loadRuntimeEnv();
+
     // Simple database connectivity test
     const result = await db.execute(sql`SELECT 1 as test`);
 
