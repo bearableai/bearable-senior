@@ -4,6 +4,14 @@ frontend:
     preBuild:
       commands:
         - npm ci --legacy-peer-deps
+        # Fetch secrets from SSM and write to .env for Next.js to bundle
+        - |
+          DB_PASSWORD=$(aws ssm get-parameter --name /bearable-senior/db-password --with-decryption --query 'Parameter.Value' --output text --region us-east-1)
+          CRON_SECRET=$(aws ssm get-parameter --name /bearable-senior/cron-secret --with-decryption --query 'Parameter.Value' --output text --region us-east-1)
+          ENDPOINT="bearable-senior-cluster.cluster-cgl6i8wwyn6u.us-east-1.rds.amazonaws.com"
+          echo "DATABASE_URL=postgresql://bearable_admin:$DB_PASSWORD@$ENDPOINT:5432/bearable_senior?sslmode=require" >> .env.production
+          echo "CRON_SECRET=$CRON_SECRET" >> .env.production
+          echo "REGION=us-east-1" >> .env.production
     build:
       commands:
         - npm run build
