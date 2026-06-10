@@ -8,7 +8,7 @@ Simple daily check-ins and medication reminders for seniors living independently
 
 ## 🚀 Deploy Now
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/bearable-senior&env=DATABASE_URL,TWILIO_ACCOUNT_SID,TWILIO_AUTH_TOKEN,TWILIO_PHONE_NUMBER,AWS_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,CRON_SECRET&envDescription=Environment%20variables%20needed%20for%20Bearable%20Senior&envLink=https://github.com/yourusername/bearable-senior/blob/main/.env.local.example)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/LeviathanTX/bearable-senior&env=DATABASE_URL,TWILIO_ACCOUNT_SID,TWILIO_AUTH_TOKEN,TWILIO_PHONE_NUMBER,AWS_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,CRON_SECRET&envDescription=Environment%20variables%20needed%20for%20Bearable%20Senior&envLink=https://github.com/LeviathanTX/bearable-senior/blob/main/.env.local.example)
 
 One-click deploy to Vercel. Takes 5 minutes.
 
@@ -40,14 +40,30 @@ One-click deploy to Vercel. Takes 5 minutes.
 
 ## 📁 What's Included
 
-Complete standalone app ready for deployment:
-- ✅ 3-step onboarding wizard
-- ✅ Senior dashboard (large buttons, high contrast)
-- ✅ Caretaker dashboard (insights + alerts)
-- ✅ Medication reminder system
+**Complete API-first backend** ready for deployment:
+
+**Privacy & Security (June 10, 2026):**
+- ✅ Three-gate safety system (injection/PII/de-identification)
+- ✅ Multi-agent consensus (health escalation, medication interactions)
+- ✅ PII detection & redaction (email, phone, SSN, credit cards)
+- ✅ Prompt injection defense (3 severity levels)
+- ✅ HIPAA-eligible architecture
+
+**Core Infrastructure:**
+- ✅ Authentication & session management
 - ✅ SMS integration (Twilio)
-- ✅ AI-powered escalation (AWS Bedrock + Claude)
-- ✅ Database schema (PostgreSQL)
+- ✅ Database schema (PostgreSQL via Drizzle)
+- ✅ Multi-agent AI (AWS Bedrock + Claude)
+
+**API Routes:**
+- ✅ Check-in endpoint (with privacy gates)
+- ✅ Medication CRUD + interaction checks
+- ✅ Caretaker dashboard data
+- ✅ Auto-escalation (2/3 agent consensus)
+
+**Frontend:**
+- ✅ Landing page with features
+- ⏳ UI pages (optional for MVP — API-first approach)
 - ✅ Marketing assets (landing page copy, ads, emails)
 - ✅ Go-to-market strategy
 - ✅ Legal templates (ToS, Privacy Policy)
