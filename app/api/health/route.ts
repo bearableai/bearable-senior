@@ -4,13 +4,13 @@ import { sql } from 'drizzle-orm';
 
 export async function GET() {
   try {
-    // Simple database connectivity test
-    const result = await db.execute(sql`SELECT 1 as test`);
+    // Test database connection with simple query
+    const result = await db.execute(sql`SELECT NOW() as current_time, 1 as test_value`);
 
     return NextResponse.json({
       status: 'ok',
       database: 'connected',
-      test: result.rows[0],
+      result: result.rows,
       hasEnv: !!process.env.DATABASE_URL
     });
   } catch (error: any) {
@@ -18,6 +18,9 @@ export async function GET() {
       status: 'error',
       database: 'failed',
       error: error.message,
+      errorName: error.name,
+      errorCode: error.code,
+      stack: error.stack?.split('\n').slice(0, 3),
       hasEnv: !!process.env.DATABASE_URL
     }, { status: 500 });
   }
