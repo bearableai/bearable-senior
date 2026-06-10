@@ -4,9 +4,13 @@ import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { createSession, SESSION_COOKIE } from '@/lib/auth/session';
 import { cookies } from 'next/headers';
+import { ensureSchema } from '@/lib/db/migrate';
 
 export async function POST(req: NextRequest) {
   try {
+    // Ensure database schema exists
+    await ensureSchema();
+
     const body = await req.json();
     const { email, password } = body;
 
