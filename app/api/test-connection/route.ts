@@ -12,9 +12,16 @@ export async function GET() {
       }, { status: 500 });
     }
 
+    // Parse connection string and disable SSL cert validation
+    const connectionString = process.env.DATABASE_URL.replace('sslmode=no-verify', '');
+
     pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
+      connectionString: connectionString,
+      ssl: {
+        rejectUnauthorized: false,
+        // Explicitly disable certificate validation
+        checkServerIdentity: () => undefined,
+      },
       connectionTimeoutMillis: 5000,
     });
 
