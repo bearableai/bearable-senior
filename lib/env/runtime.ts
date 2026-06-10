@@ -43,8 +43,8 @@ export async function loadRuntimeEnv() {
     Object.assign(process.env, cachedEnv);
 
     return cachedEnv;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to load runtime environment:', error);
-    throw new Error('Failed to load runtime environment from SSM');
+    throw new Error(`Failed to load runtime environment from SSM: ${error.message}`);
   }
 }
