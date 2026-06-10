@@ -28,10 +28,13 @@ export async function ensureSchema() {
         CREATE TABLE IF NOT EXISTS users (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           email TEXT NOT NULL UNIQUE,
+          password_hash TEXT,
+          full_name TEXT,
+          date_of_birth DATE,
           phone TEXT,
-          role TEXT NOT NULL DEFAULT 'senior',
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+          user_type TEXT NOT NULL DEFAULT 'senior',
+          onboarding_complete BOOLEAN DEFAULT false,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
 
         CREATE TABLE IF NOT EXISTS auth_sessions (
@@ -41,6 +44,9 @@ export async function ensureSchema() {
           expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
+
+        CREATE INDEX IF NOT EXISTS users_email_idx ON users(email);
+        CREATE INDEX IF NOT EXISTS users_type_idx ON users(user_type);
 
         CREATE TABLE IF NOT EXISTS check_ins (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
