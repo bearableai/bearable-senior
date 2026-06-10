@@ -215,11 +215,14 @@ git push -u origin main
 ## Technical Debt / TODOs
 
 ### Before Launch
-- [ ] Complete all API routes (copy from bearable-ai/src/app/api/senior)
-- [ ] Create landing page (use MARKETING_ASSETS.md copy)
+- [x] Complete all API routes (auth, senior, caretaker)
+- [x] Create landing page (gradient hero with features)
+- [x] Privacy integration (3-gate system, multi-agent consensus)
+- [x] Session management + Twilio SMS
 - [ ] Add Stripe integration for payments
 - [ ] Set up error monitoring (Sentry)
 - [ ] Write help docs (5 FAQs minimum)
+- [ ] Build frontend UI (dashboard, onboarding)
 
 ### Post-Launch
 - [ ] A/B test pricing ($20 vs $25)
@@ -229,39 +232,44 @@ git push -u origin main
 
 ---
 
-## Files to Copy from Main Bearable Repo
+## Integration Status (June 10, 2026)
 
-To complete the standalone app, copy these files:
+### ✅ Completed Files
 
-### From `src/lib/senior/`
-- ✅ `check-in.ts` (already started)
-- ✅ `medication-reminders.ts` (already in lib/senior/)
+**Privacy Modules:**
+- ✅ `lib/privacy/deidentify.ts` — De-identification + PII detection
+- ✅ `lib/privacy/prompt-injection.ts` — Injection defense (3 severity levels)
+- ✅ `lib/ai/multi-agent.ts` — Consensus framework (health + medication)
 
-### From `src/lib/sms/`
-- [ ] `twilio.ts` → Copy to `lib/sms/twilio.ts`
+**Core Infrastructure:**
+- ✅ `lib/auth/session.ts` — Session management
+- ✅ `lib/sms/twilio.ts` — SMS integration
+- ✅ `lib/db/schema.ts` — Full database schema
 
-### From `src/lib/auth/`
-- [ ] `session.ts` → Copy to `lib/auth/session.ts`
+**API Routes:**
+- ✅ `app/api/auth/login/route.ts` — Auto-create users
+- ✅ `app/api/auth/me/route.ts` — Current user endpoint
+- ✅ `app/api/senior/check-in/route.ts` — Three-gate privacy system
+- ✅ `app/api/senior/medications/route.ts` — CRUD + interaction checks
+- ✅ `app/api/caretaker/seniors/route.ts` — Dashboard data
 
-### From `src/app/api/senior/`
-- [ ] `check-in/route.ts`
-- [ ] `medications/route.ts`
-- [ ] `reminders/route.ts`
+**Landing Page:**
+- ✅ `app/page.tsx` — Gradient hero with feature list
 
-### From `src/app/api/caretaker/`
-- [ ] `seniors/route.ts`
-- [ ] `check-in-summary/route.ts`
-- [ ] `medication-adherence/route.ts`
-- [ ] `check-on/route.ts`
+### ❌ Optional (Not Required for MVP)
 
-### From `src/app/dashboard/`
-- [ ] `senior/page.tsx`
-- [ ] `caretaker/page.tsx`
+**Frontend UI Pages:**
+- [ ] `app/dashboard/senior/page.tsx` — Senior dashboard
+- [ ] `app/dashboard/caretaker/page.tsx` — Caretaker dashboard
+- [ ] `app/onboarding/senior/page.tsx` — Onboarding flow
 
-### From `src/app/onboarding/`
-- [ ] `senior/page.tsx`
+**Additional API Routes:**
+- [ ] `app/api/caretaker/check-in-summary/route.ts`
+- [ ] `app/api/caretaker/medication-adherence/route.ts`
+- [ ] `app/api/caretaker/check-on/route.ts`
+- [ ] `app/api/senior/reminders/route.ts`
 
-**Estimated time to copy + adapt:** 2-3 hours
+**Note:** MVP is API-first. Frontend can be built iteratively after beta validation.
 
 ---
 
