@@ -22,7 +22,7 @@ export const users = pgTable('users', {
   index('users_type_idx').on(t.userType),
 ]);
 
-export const sessions = pgTable('sessions', {
+export const authSessions = pgTable('auth_sessions', {
   id:         uuid('id').primaryKey().defaultRandom(),
   userId:     uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   token:      text('token').notNull().unique(),
