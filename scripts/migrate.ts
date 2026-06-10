@@ -17,7 +17,7 @@ if (!connectionString) {
 async function runMigrations() {
   console.log('🔄 Running database migrations...');
 
-  const client = postgres(connectionString, { max: 1 });
+  const client = postgres(connectionString!, { max: 1 });
   const db = drizzle(client, { schema });
 
   try {
