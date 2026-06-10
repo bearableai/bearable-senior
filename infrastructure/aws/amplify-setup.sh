@@ -99,14 +99,7 @@ echo "🔧 Configuring environment variables..."
 aws amplify update-app \
   --app-id $APP_ID \
   --region $REGION \
-  --environment-variables \
-    DATABASE_URL="$DATABASE_URL" \
-    CRON_SECRET="$CRON_SECRET" \
-    TWILIO_ACCOUNT_SID="${TWILIO_ACCOUNT_SID:-placeholder}" \
-    TWILIO_AUTH_TOKEN="${TWILIO_AUTH_TOKEN:-placeholder}" \
-    TWILIO_PHONE_NUMBER="${TWILIO_PHONE_NUMBER:-+18556884499}" \
-    AWS_REGION="$REGION" \
-    NEXT_PUBLIC_APP_URL="https://main.$APP_ID.amplifyapp.com"
+  --environment-variables "DATABASE_URL=$DATABASE_URL,CRON_SECRET=$CRON_SECRET,TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-placeholder},TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-placeholder},TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER:-+18556884499},AWS_REGION=$REGION,NEXT_PUBLIC_APP_URL=https://main.$APP_ID.amplifyapp.com"
 
 # Create amplify.yml build spec
 cat > /tmp/amplify.yml <<'EOF'

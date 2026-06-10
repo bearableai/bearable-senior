@@ -48,7 +48,7 @@ echo "🚀 Creating Aurora Serverless v2 cluster..."
 aws rds create-db-cluster \
   --db-cluster-identifier $DB_CLUSTER_ID \
   --engine aurora-postgresql \
-  --engine-version 15.4 \
+  --engine-version 15.17 \
   --master-username $DB_USERNAME \
   --master-user-password "$DB_PASSWORD" \
   --database-name $DB_NAME \

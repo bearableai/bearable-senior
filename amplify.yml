@@ -4,6 +4,7 @@ frontend:
     preBuild:
       commands:
         - npm ci --legacy-peer-deps
+        - npx tsx scripts/migrate.ts
     build:
       commands:
         - npm run build
