@@ -131,7 +131,7 @@ export function detectCrossFlags<T>(
 
 /**
  * Specialized: Health escalation decision (for Bearable Senior)
- * Run 3 independent agents to decide if caretaker should be alerted
+ * Run 4 independent agents to decide if caretaker should be alerted
  */
 export async function healthEscalationConsensus(
   userId: string,
@@ -197,6 +197,41 @@ export async function healthEscalationConsensus(
           reasoning: decision
             ? `Voice notes contain ${concernCount} concern keywords`
             : 'Voice notes show no major concerns',
+        };
+      },
+    },
+    {
+      name: 'Trend Analysis (14-day)',
+      fn: async () => {
+        // Agent 4: Statistical trend analysis over 14-day window
+        // Uses the same check-in data to avoid extra DB calls
+        const total = checkIns.length;
+        if (total < 4) {
+          return {
+            decision: false,
+            confidence: 0.3,
+            reasoning: 'Insufficient data for trend analysis (need 4+ check-ins)',
+          };
+        }
+
+        // Split into recent half and older half
+        const midpoint = Math.floor(total / 2);
+        const recentHalf = checkIns.slice(0, midpoint);
+        const olderHalf = checkIns.slice(midpoint);
+
+        const recentOkRate = recentHalf.filter(c => c.feelingOk).length / recentHalf.length;
+        const olderOkRate = olderHalf.filter(c => c.feelingOk).length / olderHalf.length;
+
+        // Flag if recent period is significantly worse
+        const decline = olderOkRate - recentOkRate;
+        const decision = decline >= 0.25; // 25%+ drop in ok-rate
+
+        return {
+          decision,
+          confidence: Math.min(decline * 2, 1), // Scale: 50% drop = full confidence
+          reasoning: decision
+            ? `14-day trend declining: ok-rate dropped from ${Math.round(olderOkRate * 100)}% to ${Math.round(recentOkRate * 100)}%`
+            : `Trend stable: ok-rate ${Math.round(recentOkRate * 100)}% (recent) vs ${Math.round(olderOkRate * 100)}% (prior)`,
         };
       },
     },

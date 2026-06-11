@@ -9,6 +9,7 @@ import {
   generateAdvisoryMessage,
   NotificationLevel,
 } from '@/lib/escalation/tiered';
+import { detectTrends } from '@/lib/health/pattern-detection';
 
 export interface CheckIn {
   id: string;
@@ -40,6 +41,11 @@ export async function createCheckIn(
   if (!feelingOk) {
     await checkEscalationPattern(userId, checkIn.id);
   }
+
+  // Run 14-day trend detection on every check-in (async, non-blocking)
+  runTrendDetection(userId).catch(err => {
+    console.error('[check-in] Trend detection failed:', err);
+  });
 
   return {
     id: checkIn.id,
@@ -152,4 +158,59 @@ export async function getRecentCheckIns(userId: string, days: number = 7): Promi
     caretakerNotified: r.caretakerNotified ?? false,
     createdAt: r.createdAt!,
   }));
+}
+
+/**
+ * Run 14-day trend detection and trigger advisory notifications if declining.
+ */
+async function runTrendDetection(userId: string): Promise<void> {
+  const trendReport = await detectTrends(userId);
+
+  // Only act on advisory or urgent severity
+  if (trendReport.severity === 'none') return;
+
+  // Get caretaker relationships
+  const caretakerRelationships = await db
+    .select({
+      caretakerId: relationships.caretakerId,
+      notificationLevel: relationships.notificationLevel,
+    })
+    .from(relationships)
+    .where(and(
+      eq(relationships.seniorId, userId),
+      eq(relationships.status, 'active'),
+    ));
+
+  if (caretakerRelationships.length === 0) return;
+
+  const [senior] = await db
+    .select({ fullName: users.fullName })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  const seniorName = senior?.fullName || 'Your loved one';
+  const tier = trendReport.severity === 'urgent' ? 'urgent' as const : 'advisory' as const;
+
+  for (const rel of caretakerRelationships) {
+    const notificationLevel = (rel.notificationLevel || 'advisory_and_urgent') as NotificationLevel;
+
+    if (!shouldSendNotification(tier, notificationLevel)) continue;
+
+    const [caretaker] = await db
+      .select({ phone: users.phone })
+      .from(users)
+      .where(eq(users.id, rel.caretakerId))
+      .limit(1);
+
+    if (!caretaker?.phone) continue;
+
+    const message = `[Bearable Trend Update] ${seniorName}: ${trendReport.summary}`;
+
+    try {
+      await sendSMS(caretaker.phone, message);
+    } catch (err) {
+      console.error('[trend-detection] Failed to send trend notification:', err);
+    }
+  }
 }
