@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     await ensureSchema();
 
     const body = await req.json();
-    const { email, password, action } = body;
+    const { email, password, action, phone, phoneVerified } = body;
 
     if (!email) {
       return NextResponse.json({ error: 'Email required' }, { status: 400 });
@@ -38,12 +38,18 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Email already registered' }, { status: 400 });
       }
 
+      // Require phone verification for signup (security requirement)
+      if (!phone || !phoneVerified) {
+        return NextResponse.json({ error: 'Phone verification required for signup' }, { status: 400 });
+      }
+
       const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
       const [newUser] = await db
         .insert(users)
         .values({
           email,
           passwordHash,
+          phone, // Only set if verified
           fullName: email.split('@')[0],
           userType: 'senior',
         })
@@ -66,6 +72,7 @@ export async function POST(req: NextRequest) {
           email: newUser.email,
           fullName: newUser.fullName,
           userType: newUser.userType,
+          phone: newUser.phone,
         }
       });
     }
