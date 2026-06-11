@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
             try {
               await sendSMS(
                 caretakerPhone,
-                `[Bearable Alert] ${user.fullName || 'Your senior'} has missed 3+ medications in the past week. Please check in with them.`
+                `[Bearable Heads-Up] ${user.fullName || 'Your loved one'} may have missed a few medications this week. A gentle check-in might help.`
               );
             } catch (err) {
               console.error(`[cron] Failed to send caretaker SMS:`, err);

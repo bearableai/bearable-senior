@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
     // Reply based on sentiment
     let reply = 'Thanks for checking in! ';
     if (hasConcern) {
-      reply += "I've noted that you're not feeling well. Your family will be notified if needed.";
+      reply += "I hear you. I've noted how you're feeling, and your family is here for you if needed.";
     } else {
       reply += "I'm glad you're doing well today!";
     }

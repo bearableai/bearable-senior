@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
       // Only send summary if caretaker has phone
       if (caretaker.phone) {
-        let message = `Weekly Summary for ${senior.fullName || 'your senior'}:\n`;
+        let message = `Weekly Update for ${senior.fullName || 'your loved one'}:\n`;
         message += `✅ ${goodDays}/${totalDays} days feeling good (${checkInRate}% check-in rate)\n`;
 
         if (concerningDays > 0) {

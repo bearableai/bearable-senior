@@ -87,7 +87,7 @@ export default function SeniorDashboard() {
 
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold mb-3">Medications</h3>
-            <p className="text-gray-600 mb-4">Track your daily medications</p>
+            <p className="text-gray-600 mb-4">Keep up with your daily routine</p>
             <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
               View Medications
             </button>

@@ -4,12 +4,12 @@
  * Three notification tiers:
  * - informational: weekly summary (Sundays) — "Mom had 2 rough days this week but bounced back"
  * - advisory: fires when pattern is declining 4+ days but not yet urgent
- * - urgent: existing behavior (immediate alert with multi-agent consensus)
+ * - urgent: existing behavior (immediate heads-up with multi-agent consensus)
  *
  * Caretakers choose their notification_level:
  * - 'all': receives informational + advisory + urgent
  * - 'advisory_and_urgent': receives advisory + urgent (default)
- * - 'urgent_only': receives only urgent alerts
+ * - 'urgent_only': receives only urgent updates
  */
 
 export type NotificationTier = 'informational' | 'advisory' | 'urgent';
@@ -82,7 +82,7 @@ export function generateAdvisoryMessage(
   seniorName: string,
   badDayCount: number
 ): string {
-  return `[Bearable Advisory] ${seniorName}'s responses have been declining for ${badDayCount} days — no action needed yet, but worth keeping an eye on.`;
+  return `[Bearable Update] ${seniorName} has had ${badDayCount} tough days recently — nothing urgent, but worth keeping in touch.`;
 }
 
 /**
@@ -95,12 +95,12 @@ export function generateWeeklySummary(
   badDays: number
 ): string {
   if (badDays === 0) {
-    return `[Bearable Weekly] ${seniorName} had a great week — ${goodDays} good check-ins and no concerning days.`;
+    return `[Bearable Weekly] ${seniorName} had a great week — ${goodDays} good check-ins and no rough days.`;
   }
 
   if (goodDays > badDays) {
     return `[Bearable Weekly] ${seniorName} had ${badDays} rough day${badDays > 1 ? 's' : ''} this week but bounced back. ${goodDays}/${totalCheckIns} check-ins were positive.`;
   }
 
-  return `[Bearable Weekly] ${seniorName} had a tough week — ${badDays} concerning days out of ${totalCheckIns} check-ins. Consider reaching out.`;
+  return `[Bearable Weekly] ${seniorName} had a tough week — ${badDays} rough days out of ${totalCheckIns} check-ins. They might appreciate a call.`;
 }

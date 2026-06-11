@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
 
               await sendSMS(
                 caretakerPhone,
-                `[Bearable Alert] ${senior?.fullName || 'Your senior'} needs attention. Reason: ${result.reasons[0]?.split(': ')[1] || 'Multiple concerning check-ins'}. Confidence: ${Math.round(result.confidence * 100)}%. Please check in with them.`
+                `[Bearable Heads-Up] ${senior?.fullName || 'Your loved one'} may need some extra support. ${result.reasons[0]?.split(': ')[1] || 'Several check-ins suggest a rough patch'}. Consider giving them a call.`
               );
             }
           }

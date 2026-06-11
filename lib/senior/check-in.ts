@@ -115,7 +115,7 @@ async function checkEscalationPattern(userId: string, checkInId: string): Promis
 
     let message: string;
     if (tier === 'urgent') {
-      message = `[Bearable Alert] ${seniorName} has reported not feeling well for 3 days in a row. You may want to check in.`;
+      message = `[Bearable Heads-Up] ${seniorName} hasn't been feeling great for a few days. They might appreciate hearing from you.`;
     } else {
       // advisory
       const badDays = recent.filter(r => !r.feelingOk).length;
@@ -205,7 +205,7 @@ async function runTrendDetection(userId: string): Promise<void> {
 
     if (!caretaker?.phone) continue;
 
-    const message = `[Bearable Trend Update] ${seniorName}: ${trendReport.summary}`;
+    const message = `[Bearable Update] ${seniorName}: ${trendReport.summary}`;
 
     try {
       await sendSMS(caretaker.phone, message);

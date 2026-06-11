@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         .where(eq(users.id, rel.seniorId))
         .limit(1);
 
-      const seniorName = senior?.fullName || rel.label || 'Your senior';
+      const seniorName = senior?.fullName || rel.label || 'your loved one';
 
       // Get last 7 days of check-ins for this senior
       const recentCheckIns = await db

@@ -77,7 +77,7 @@ export default function Home() {
             <li>✅ Natural language medication reminders</li>
             <li>✅ Multi-agent health escalation (2/3 consensus)</li>
             <li>✅ Privacy-first: PII redaction + de-identification</li>
-            <li>✅ Caretaker dashboard with real-time alerts</li>
+            <li>✅ Family dashboard with peace-of-mind updates</li>
             <li>✅ HIPAA-eligible architecture</li>
           </ul>
         </div>

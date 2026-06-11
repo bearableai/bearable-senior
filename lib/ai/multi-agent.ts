@@ -131,7 +131,7 @@ export function detectCrossFlags<T>(
 
 /**
  * Specialized: Health escalation decision (for Bearable Senior)
- * Run 4 independent agents to decide if caretaker should be alerted
+ * Run 4 independent agents to decide if caretaker should be notified
  */
 export async function healthEscalationConsensus(
   userId: string,
