@@ -44,6 +44,7 @@ export const relationships = pgTable('relationships', {
   label:          text('label'), // "My daughter Sarah"
   status:         text('status').notNull().default('active'), // 'active' | 'paused' | 'ended'
   // Communication preferences
+  notificationLevel: text('notification_level').notNull().default('advisory_and_urgent'), // 'all' | 'advisory_and_urgent' | 'urgent_only'
   notificationPreferences: jsonb('notification_preferences').default({}),
   quietHoursStart: text('quiet_hours_start'), // "22:00"
   quietHoursEnd:   text('quiet_hours_end'),   // "07:00"

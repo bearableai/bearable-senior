@@ -3,6 +3,12 @@ import { db } from '@/lib/db/client';
 import { checkIns, relationships, users } from '@/lib/db/schema';
 import { eq, desc, and, sql } from 'drizzle-orm';
 import { sendSMS } from '@/lib/sms/twilio';
+import {
+  determineEscalationTier,
+  shouldSendNotification,
+  generateAdvisoryMessage,
+  NotificationLevel,
+} from '@/lib/escalation/tiered';
 
 export interface CheckIn {
   id: string;
@@ -52,34 +58,32 @@ async function checkEscalationPattern(userId: string, checkInId: string): Promis
     .from(checkIns)
     .where(eq(checkIns.userId, userId))
     .orderBy(desc(checkIns.createdAt))
-    .limit(3);
+    .limit(7);
 
   if (recent.length < 3) return;
 
-  const allBad = recent.every(r => !r.feelingOk);
-  if (!allBad) return;
+  // Determine escalation tier based on check-in pattern
+  const checkInData = recent.map(r => ({
+    feelingOk: r.feelingOk,
+    createdAt: r.createdAt!,
+  }));
 
-  // Get primary caretaker
-  const [relationship] = await db
+  const tier = determineEscalationTier(checkInData);
+  if (!tier) return;
+
+  // Get all active caretaker relationships
+  const caretakerRelationships = await db
     .select({
       caretakerId: relationships.caretakerId,
+      notificationLevel: relationships.notificationLevel,
     })
     .from(relationships)
     .where(and(
       eq(relationships.seniorId, userId),
       eq(relationships.status, 'active'),
-    ))
-    .limit(1);
+    ));
 
-  if (!relationship) return;
-
-  const [caretaker] = await db
-    .select({ phone: users.phone })
-    .from(users)
-    .where(eq(users.id, relationship.caretakerId))
-    .limit(1);
-
-  if (!caretaker?.phone) return;
+  if (caretakerRelationships.length === 0) return;
 
   const [senior] = await db
     .select({ fullName: users.fullName })
@@ -89,10 +93,35 @@ async function checkEscalationPattern(userId: string, checkInId: string): Promis
 
   const seniorName = senior?.fullName || 'Your loved one';
 
-  await sendSMS(
-    caretaker.phone,
-    `[Bearable Alert] ${seniorName} has reported not feeling well for 3 days in a row. You may want to check in.`,
-  );
+  for (const rel of caretakerRelationships) {
+    const notificationLevel = (rel.notificationLevel || 'advisory_and_urgent') as NotificationLevel;
+
+    // Gate: only send if caretaker's level permits this tier
+    if (!shouldSendNotification(tier, notificationLevel)) continue;
+
+    const [caretaker] = await db
+      .select({ phone: users.phone })
+      .from(users)
+      .where(eq(users.id, rel.caretakerId))
+      .limit(1);
+
+    if (!caretaker?.phone) continue;
+
+    let message: string;
+    if (tier === 'urgent') {
+      message = `[Bearable Alert] ${seniorName} has reported not feeling well for 3 days in a row. You may want to check in.`;
+    } else {
+      // advisory
+      const badDays = recent.filter(r => !r.feelingOk).length;
+      message = generateAdvisoryMessage(seniorName, badDays);
+    }
+
+    try {
+      await sendSMS(caretaker.phone, message);
+    } catch (err) {
+      console.error(`[escalation] Failed to send ${tier} SMS to caretaker:`, err);
+    }
+  }
 
   await db
     .update(checkIns)

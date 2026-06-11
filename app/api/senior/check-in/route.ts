@@ -7,6 +7,7 @@ import { runSafetyGate } from '@/lib/privacy/prompt-injection';
 import { checkForPII } from '@/lib/privacy/deidentify';
 import { healthEscalationConsensus } from '@/lib/ai/multi-agent';
 import { sendSMS } from '@/lib/sms/twilio';
+import { shouldSendNotification, NotificationLevel } from '@/lib/escalation/tiered';
 
 export async function POST(req: NextRequest) {
   try {
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
       // Run multi-agent consensus (runs in background)
       healthEscalationConsensus(userId, checkInData).then(async (result) => {
         if (result.consensus && result.confidence >= 0.6) {
-          // Alert caretakers
+          // Alert caretakers — gated by notification level (this is 'urgent' tier)
           const caretakers = await db
             .select()
             .from(relationships)
@@ -76,6 +77,11 @@ export async function POST(req: NextRequest) {
             .where(eq(relationships.seniorId, userId));
 
           for (const rel of caretakers) {
+            const notificationLevel = (rel.relationships.notificationLevel || 'advisory_and_urgent') as NotificationLevel;
+
+            // Gate: only send urgent alerts to those who accept them
+            if (!shouldSendNotification('urgent', notificationLevel)) continue;
+
             const caretakerPhone = rel.users.phone;
             if (caretakerPhone) {
               const senior = await db.query.users.findFirst({
