@@ -3,6 +3,7 @@ import { db } from '@/lib/db/client';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { sendSMS, generateVerifyCode } from '@/lib/sms/twilio';
+import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
 
 // In-memory store for verification codes (5 minute expiry)
 // Production: use Redis or database table
@@ -20,6 +21,23 @@ setInterval(() => {
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting by IP: 5 requests per 15 minutes
+    const clientIp = getClientIp(req);
+    const rateLimit = checkRateLimit(`verify-phone:${clientIp}`, {
+      maxRequests: 5,
+      windowMs: 15 * 60 * 1000, // 15 minutes
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many verification attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: getRateLimitHeaders(rateLimit),
+        }
+      );
+    }
+
     const body = await req.json();
     const { phone, code, action, userId } = body;
 
@@ -29,6 +47,18 @@ export async function POST(req: NextRequest) {
 
     // ACTION: send - Send verification code
     if (action === 'send') {
+      // Additional rate limit for SMS sends by phone: 3 per hour
+      const phoneLimit = checkRateLimit(`verify-phone:send:${phone}`, {
+        maxRequests: 3,
+        windowMs: 60 * 60 * 1000, // 1 hour
+      });
+
+      if (!phoneLimit.allowed) {
+        return NextResponse.json(
+          { error: 'Too many SMS sent to this number. Please try again in an hour.' },
+          { status: 429, headers: getRateLimitHeaders(phoneLimit) }
+        );
+      }
       const verifyCode = generateVerifyCode();
       const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
 

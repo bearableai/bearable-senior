@@ -6,11 +6,29 @@ import { createSession, SESSION_COOKIE } from '@/lib/auth/session';
 import { cookies } from 'next/headers';
 import { ensureSchema } from '@/lib/db/migrate';
 import bcrypt from 'bcrypt';
+import { checkRateLimit, getClientIp, getRateLimitHeaders } from '@/lib/rate-limit';
 
 const SALT_ROUNDS = 10;
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting by IP: 10 login attempts per 15 minutes
+    const clientIp = getClientIp(req);
+    const rateLimit = checkRateLimit(`auth-login:${clientIp}`, {
+      maxRequests: 10,
+      windowMs: 15 * 60 * 1000,
+    });
+
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many login attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: getRateLimitHeaders(rateLimit),
+        }
+      );
+    }
+
     // Ensure database schema exists
     await ensureSchema();
 

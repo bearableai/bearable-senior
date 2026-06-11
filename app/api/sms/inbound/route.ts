@@ -5,6 +5,7 @@ import { eq, desc } from 'drizzle-orm';
 import { normalizePhone } from '@/lib/sms/twilio';
 import { runSafetyGate } from '@/lib/privacy/prompt-injection';
 import { checkForPII } from '@/lib/privacy/deidentify';
+import { checkRateLimit, getRateLimitHeaders } from '@/lib/rate-limit';
 
 export const maxDuration = 30;
 
@@ -14,6 +15,27 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const from = formData.get('From') as string;
     const body = formData.get('Body') as string;
+
+    // Rate limiting by phone: 20 SMS per hour per number
+    if (from) {
+      const normalizedPhone = normalizePhone(from);
+      if (normalizedPhone) {
+        const rateLimit = checkRateLimit(`sms-inbound:${normalizedPhone}`, {
+          maxRequests: 20,
+          windowMs: 60 * 60 * 1000, // 1 hour
+        });
+
+        if (!rateLimit.allowed) {
+          return new Response(
+            `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Message>You've sent too many messages. Please wait before sending more.</Message>
+</Response>`,
+            { headers: { 'Content-Type': 'text/xml', ...getRateLimitHeaders(rateLimit) } }
+          );
+        }
+      }
+    }
 
     if (!from || !body) {
       return new Response('<?xml version="1.0" encoding="UTF-8"?><Response></Response>', {
