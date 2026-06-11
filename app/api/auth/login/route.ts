@@ -5,6 +5,9 @@ import { eq } from 'drizzle-orm';
 import { createSession, SESSION_COOKIE } from '@/lib/auth/session';
 import { cookies } from 'next/headers';
 import { ensureSchema } from '@/lib/db/migrate';
+import bcrypt from 'bcrypt';
+
+const SALT_ROUNDS = 10;
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,10 +15,14 @@ export async function POST(req: NextRequest) {
     await ensureSchema();
 
     const body = await req.json();
-    const { email, password } = body;
+    const { email, password, action } = body;
 
     if (!email) {
       return NextResponse.json({ error: 'Email required' }, { status: 400 });
+    }
+
+    if (!password) {
+      return NextResponse.json({ error: 'Password required' }, { status: 400 });
     }
 
     // Find user by email
@@ -25,12 +32,18 @@ export async function POST(req: NextRequest) {
       .where(eq(users.email, email))
       .limit(1);
 
-    if (!user) {
-      // For demo/beta: auto-create user
+    // SIGNUP: Create new user
+    if (action === 'signup') {
+      if (user) {
+        return NextResponse.json({ error: 'Email already registered' }, { status: 400 });
+      }
+
+      const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
       const [newUser] = await db
         .insert(users)
         .values({
           email,
+          passwordHash,
           fullName: email.split('@')[0],
           userType: 'senior',
         })
@@ -57,8 +70,20 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // TODO: Add password verification when passwords are implemented
-    // For now: just create session
+    // LOGIN: Verify existing user
+    if (!user) {
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    }
+
+    if (!user.passwordHash) {
+      return NextResponse.json({ error: 'Account has no password set' }, { status: 401 });
+    }
+
+    const passwordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!passwordValid) {
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    }
+
     const sessionToken = await createSession(user.id);
     const jar = await cookies();
     jar.set(SESSION_COOKIE, sessionToken, {
@@ -82,7 +107,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('[auth/login] Error:', error);
     return NextResponse.json({
-      error: 'Login failed'
+      error: 'Authentication failed'
     }, { status: 500 });
   }
 }
