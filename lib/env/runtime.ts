@@ -13,7 +13,7 @@ export async function loadRuntimeEnv() {
 
   try {
     // Load from SSM Parameter Store
-    const [dbPassword, cronSecret] = await Promise.all([
+    const [dbPassword, cronSecret, rdsEndpoint] = await Promise.all([
       ssmClient.send(
         new GetParameterCommand({
           Name: '/bearable-senior/db-password',
@@ -26,10 +26,16 @@ export async function loadRuntimeEnv() {
           WithDecryption: true,
         })
       ),
+      ssmClient.send(
+        new GetParameterCommand({
+          Name: '/bearable-senior/rds-endpoint',
+          WithDecryption: false,
+        })
+      ),
     ]);
 
     const dbPass = dbPassword.Parameter?.Value;
-    const endpoint = 'bearable-senior-cluster.cluster-cgl6i8wwyn6u.us-east-1.rds.amazonaws.com';
+    const endpoint = rdsEndpoint.Parameter?.Value || 'bearable-senior-cluster.cluster-cgl6i8wwyn6u.us-east-1.rds.amazonaws.com';
 
     cachedEnv = {
       DATABASE_URL: `postgresql://bearable_admin:${dbPass}@${endpoint}:5432/bearable_senior?sslmode=require`,
