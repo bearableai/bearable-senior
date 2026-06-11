@@ -36,7 +36,7 @@ export default function Home() {
           marginTop: '40px',
         }}>
           <a
-            href="/dashboard"
+            href="/auth"
             style={{
               padding: '12px 32px',
               background: 'white',
