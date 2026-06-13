@@ -1,29 +1,8 @@
-const ACCOUNT_SID  = process.env.TWILIO_ACCOUNT_SID!;
-const AUTH_TOKEN   = process.env.TWILIO_AUTH_TOKEN!;
-const FROM_NUMBER  = process.env.TWILIO_PHONE_NUMBER!;
+// DEPRECATED: Twilio has been replaced by AWS SNS.
+// This file re-exports from aws-sns.ts for backward compatibility.
+// All SMS is now sent via AWS SNS.
 
-export async function sendSMS(to: string, body: string): Promise<void> {
-  if (!ACCOUNT_SID || !AUTH_TOKEN || !FROM_NUMBER) {
-    throw new Error('Twilio credentials not configured');
-  }
-
-  const res = await fetch(
-    `https://api.twilio.com/2010-04-01/Accounts/${ACCOUNT_SID}/Messages.json`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Basic ${Buffer.from(`${ACCOUNT_SID}:${AUTH_TOKEN}`).toString('base64')}`,
-      },
-      body: new URLSearchParams({ To: to, From: FROM_NUMBER, Body: body }).toString(),
-    },
-  );
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Twilio error ${res.status}: ${err}`);
-  }
-}
+export { sendSMS } from './aws-sns';
 
 export function generateVerifyCode(): string {
   return String(Math.floor(100000 + Math.random() * 900000));

@@ -2,17 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db/client';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { initiateOutboundCall } from '@/lib/voice/aws-connect';
 
 export const maxDuration = 60;
 
-const ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID!;
-const AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN!;
-const FROM_NUMBER = process.env.TWILIO_PHONE_NUMBER!;
-
 /**
- * Cron: Initiate daily outbound wellness calls to seniors.
+ * Cron: Initiate daily outbound wellness calls to seniors via Amazon Connect.
  * Runs at 9:00 AM CT (14:00 UTC). Each senior with a phone number
- * receives a call that routes to /api/voice/inbound for the check-in flow.
+ * receives a call through the Connect contact flow, which handles
+ * the greeting, recording, transcription, and callback to /api/voice/connect-callback.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -22,7 +20,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('[cron/daily-call] Initiating daily wellness calls...');
+    console.log('[cron/daily-call] Initiating daily wellness calls via Amazon Connect...');
 
     // Get all seniors with phone numbers
     const seniors = await db
@@ -30,7 +28,6 @@ export async function POST(req: NextRequest) {
       .from(users)
       .where(eq(users.userType, 'senior'));
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://bearable-senior.vercel.app';
     let callsInitiated = 0;
     let callsFailed = 0;
 
@@ -38,33 +35,9 @@ export async function POST(req: NextRequest) {
       if (!senior.phone) continue;
 
       try {
-        const res = await fetch(
-          `https://api.twilio.com/2010-04-01/Accounts/${ACCOUNT_SID}/Calls.json`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              Authorization: `Basic ${Buffer.from(`${ACCOUNT_SID}:${AUTH_TOKEN}`).toString('base64')}`,
-            },
-            body: new URLSearchParams({
-              To: senior.phone,
-              From: FROM_NUMBER,
-              Url: `${baseUrl}/api/voice/inbound`,
-              StatusCallback: `${baseUrl}/api/voice/recording-complete`,
-              Timeout: '30',
-              MachineDetection: 'Enable',
-            }).toString(),
-          },
-        );
-
-        if (res.ok) {
-          callsInitiated++;
-          console.log(`[cron/daily-call] Call initiated to senior ${senior.id}`);
-        } else {
-          const err = await res.text();
-          console.error(`[cron/daily-call] Failed to call senior ${senior.id}:`, err);
-          callsFailed++;
-        }
+        await initiateOutboundCall(senior.phone);
+        callsInitiated++;
+        console.log(`[cron/daily-call] Call initiated to senior ${senior.id}`);
       } catch (err) {
         console.error(`[cron/daily-call] Error calling senior ${senior.id}:`, err);
         callsFailed++;

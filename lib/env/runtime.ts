@@ -40,9 +40,9 @@ export async function loadRuntimeEnv() {
     cachedEnv = {
       DATABASE_URL: `postgresql://bearable_admin:${dbPass}@${endpoint}:5432/bearable_senior?sslmode=require`,
       CRON_SECRET: cronSecret.Parameter?.Value || '',
-      TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID || 'placeholder',
-      TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN || 'placeholder',
-      TWILIO_PHONE_NUMBER: process.env.TWILIO_PHONE_NUMBER || '+18556884499',
+      CONNECT_INSTANCE_ID: process.env.CONNECT_INSTANCE_ID || '',
+      CONNECT_CONTACT_FLOW_ID: process.env.CONNECT_CONTACT_FLOW_ID || '',
+      CONNECT_PHONE_NUMBER: process.env.CONNECT_PHONE_NUMBER || '',
     };
 
     // Set in process.env for backward compatibility
